@@ -1,0 +1,15 @@
+[Unit]
+Description=P1 Seguridad Web Application
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/p1-webapp
+EnvironmentFile=/etc/p1-webapp.env
+ExecStart=/usr/bin/gunicorn --workers 2 --bind 127.0.0.1:5000 app:app
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

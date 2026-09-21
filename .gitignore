@@ -3,3 +3,9 @@
 *.swp
 .DS_Store
 Thumbs.db
+
+# Archivos privados del laboratorio
+private-local/
+
+# Archivos privados del laboratorio
+private-local/
