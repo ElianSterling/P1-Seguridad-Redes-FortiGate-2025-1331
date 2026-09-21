@@ -1,80 +1,56 @@
-# Evidencias organizadas — P1 Seguridad de Redes
+# 09 - Índice de evidencias
 
-Paquete organizado para `P1-Seguridad-Redes-FortiGate-2025-1331`.
+## FortiGate
 
-## Capturas principales
+| Archivo | Evidencia |
+|---|---|
+| `01-interfaces-vlans.png` | Interfaces y direccionamiento VLAN |
+| `02-interfaces-vlans-dhcp.png` | VLANs y rango DHCP de USERS |
+| `03-firewall-policies.png` | Políticas principales de firewall |
+| `04-ips-quarantine.png` | Cuarentena IPS de 10.25.13.10 |
+| `05-file-filter-exe-blocked.png` | Bloqueo de archivo .exe |
+| `06-dos-syn-flood-protection.png` | Protección tcp_syn_flood |
+| `07-ips-sqli-dropped-details.png` | SQL Injection detectado y dropped |
+| `08-custom-deep-inspection.png` | Perfil Full SSL Inspection |
+| `09-users-to-web-https-security-profiles.png` | Policy HTTPS con IPS + SSL Inspection |
+| `10-per-ip-shaper-2048kbps.png` | Per-IP rate limiting a 2048 Kbps |
+| `11-forward-traffic-web-to-db-mysql.png` | WEB01 → DB01 MySQL permitido |
 
-### FortiGate
-- `01-interfaces-vlans.png`
-  - Interfaces VLAN del laboratorio.
-- `02-interfaces-vlans-dhcp.png`
-  - VLANs y DHCP de USERS.
-- `03-firewall-policies.png`
-  - Políticas principales de firewall.
-- `04-ips-quarantine.png`
-  - Cuarentena de `10.25.13.10` por IPS.
-- `05-file-filter-exe-blocked.png`
-  - Bloqueo de `P1-Test.exe` mediante `P1_BLOCK_EXE`.
-- `06-dos-syn-flood-protection.png`
-  - DoS Policy `P1_WEB_DOS_PROTECTION`, `tcp_syn_flood`, `Block`, threshold `100`.
-- `07-ips-sqli-dropped-details.png`
-  - Evidencia detallada del evento `P1.SQL.Injection.Test`.
-  - Source `10.25.13.10`, destination `10.25.13.130`, HTTP/80, action `dropped`.
-  - Incluye el payload `id=1 OR 1=1`, perfil `P1_SQLI_PROTECTION` y severidad High.
-- `08-custom-deep-inspection.png`
-  - Perfil `custom-deep-inspection` con Full SSL Inspection y CA `Fortinet_CA_SSL`.
-  - HTTPS/443 habilitado para inspección.
-- `09-users-to-web-https-security-profiles.png`
-  - Policy `USERS_to_WEB_HTTPS` con IPS `P1_SQLI_PROTECTION`
-    y SSL Inspection `custom-deep-inspection`.
+Ruta: `images/fortigate/`
 
-### Switch
-- `images/switch/01-switch-status-trunk.png`
-  - Puertos de acceso, puertos no usados deshabilitados y trunk 802.1Q
-    con VLAN 10,20,30,99.
+## Switch
 
-### WEB01
-- `images/web/01-web01-https-db-data.png`
-  - Aplicación HTTPS de WEB01 consumiendo datos desde DB01 por TCP/3306.
+`images/switch/01-switch-status-trunk.png`
+
+Demuestra puertos de acceso, trunk 802.1Q y puertos no utilizados deshabilitados.
+
+La salida textual de `show vlan brief` y `show interfaces trunk` se encuentra en:
+
+`configs/switch/SW1-verification.txt`
+
+## WEB01
+
+`images/web/01-web01-https-db-data.png`
+
+Demuestra que WEB01 funciona sobre HTTPS y obtiene datos desde DB01 mediante TCP/3306.
+
+## Pruebas
+
+`images/pruebas/01-segmentacion-user-web-db.png`
+
+En una sola captura demuestra:
+
+- USER01 → DB01:3306 = `False`.
+- USER01 → WEB01:443 = `True`.
 
 ## Capturas descartadas
-- `images/descartadas/01-interfaces-incompleta.png`
-  - Captura intermedia; no muestra todas las VLANs.
-- `images/descartadas/02-firewall-policies-duplicada.png`
-  - Duplicada de la captura principal de políticas.
 
-## Notas de documentación
-- Las capturas del 17 de septiembre muestran la WAN con `192.168.1.137`.
-  Más adelante el FortiGate recibió `192.168.1.184` por DHCP.
-  Deben usarse como evidencia de VLANs/interfaces, no de la IP WAN final.
-- `custom-deep-inspection` quedó configurado correctamente, pero la VM Evaluation
-  limitó la demostración completa de DPI sobre HTTPS. Debe documentarse como
-  limitación de licencia, no como ausencia de configuración.
+El directorio `images/descartadas/` conserva capturas intermedias o duplicadas y no debe utilizarse como evidencia principal.
 
-## Evidencias que todavía conviene añadir
-- Prueba desde USER01 de `WEB01:443` permitida y `DB01:3306` bloqueada.
-- Traffic Shaping Policy `P1_USERS_TO_WEB_RATE_LIMIT` con `P1_WEB_RATE_LIMIT`.
-- Estado final de MariaDB escuchando en `10.25.13.146:3306`.
-- Si existe, una captura final de `show vlan brief` y `show interfaces trunk`.
+## Nota sobre la WAN
 
+Las capturas iniciales de interfaces muestran la WAN con `192.168.1.137`. Posteriormente el FortiGate obtuvo `192.168.1.184` mediante DHCP. Estas capturas se utilizan para documentar VLANs y direccionamiento interno, no como referencia del lease WAN final.
 
-## Nuevas evidencias añadidas (21 de septiembre)
+## Nota sobre DPI
 
-- `images/fortigate/10-per-ip-shaper-2048kbps.png`
-  - Evidencia del `Per IP Shaper` llamado `P1_WEB_RATE_LIMIT`.
-  - Maximum bandwidth configurado en `2048 kbps`.
-  - Sirve como evidencia directa del requisito de rate limiting.
-
-- `images/fortigate/11-forward-traffic-web-to-db-mysql.png`
-  - Evidencia de tráfico permitido desde `WEB01 (10.25.13.130)` hacia `DB01 (10.25.13.146)`.
-  - La fila visible corresponde a la policy `WEB_to_DB_MYSQL`.
-  - Útil para demostrar que WEB01 puede acceder a DB01 por MySQL.
-  - No sustituye la evidencia de que `USER01 -> DB01:3306` está bloqueado; para eso conviene una captura separada de la prueba final o del log de deny.
-
-
-## Evidencia final de segmentación
-
-- `images/pruebas/01-segmentacion-user-web-db.png`
-  - Desde `USER01 (10.25.13.10)`, `DB01 (10.25.13.146):3306` devuelve `TcpTestSucceeded : False`.
-  - Desde el mismo origen, `WEB01 (10.25.13.130):443` devuelve `TcpTestSucceeded : True`.
-  - Demuestra simultáneamente que el acceso directo de USERS a MariaDB está bloqueado y que HTTPS hacia WEB01 está permitido.
+El perfil `custom-deep-inspection` y su aplicación a `USERS_to_WEB_HTTPS` están documentados visualmente. La VM Evaluation utilizada limitó la demostración completa del descifrado e inspección HTTPS.

@@ -1,0 +1,145 @@
+FGT-P1 - RESUMEN SANITIZADO DE CONFIGURACION
+=============================================
+
+NOTA:
+Este archivo documenta únicamente la configuración relevante del laboratorio.
+NO es un backup completo/restaurable del FortiGate y no contiene contraseñas,
+claves privadas, certificados privados ni secretos.
+
+FORTIGATE
+---------
+FortiOS: 7.0.3
+Rol: Routing inter-VLAN, firewall, NAT, IPS, SSL Inspection, File Filter,
+Traffic Shaping y protección DoS.
+
+WAN
+---
+Interface: WAN-INTERNET (port1)
+Addressing: DHCP
+Observed leases during lab: 192.168.1.137 / 192.168.1.184
+Default route: 0.0.0.0/0 via 192.168.1.1
+
+VLAN INTERFACES SOBRE port2
+---------------------------
+VLAN10-USERS
+  VLAN ID: 10
+  Address: 10.25.13.1/25
+  DHCP: 10.25.13.10-10.25.13.120
+
+VLAN20-WEB
+  VLAN ID: 20
+  Address: 10.25.13.129/28
+
+VLAN30-DB
+  VLAN ID: 30
+  Address: 10.25.13.145/28
+
+VLAN99-MGMT
+  VLAN ID: 99
+  Address: 10.25.13.161/28
+
+ADDRESS OBJECTS
+---------------
+USER01 = 10.25.13.10/32
+WEB01  = 10.25.13.130/32
+DB01   = 10.25.13.146/32
+
+FIREWALL POLICIES
+-----------------
+1. USERS_to_DB_MYSQL_DENY
+   Incoming: VLAN10-USERS
+   Destination: DB01
+   Service: MYSQL / TCP 3306
+   Action: DENY
+   Logging: Enabled
+
+2. USERS_to_INTERNET
+   Incoming: VLAN10-USERS
+   Outgoing: WAN-INTERNET
+   Service: ALL
+   Action: ACCEPT
+   NAT: Enabled
+   Logging: Enabled
+
+3. USERS_to_WEB_HTTPS
+   Incoming: VLAN10-USERS
+   Outgoing: VLAN20-WEB
+   Destination: WEB01
+   Service: HTTPS / TCP 443
+   Action: ACCEPT
+   NAT: Disabled
+   IPS: P1_SQLI_PROTECTION
+   SSL Inspection: custom-deep-inspection
+   Logging: All Sessions
+
+4. WEB_to_DB_MYSQL
+   Incoming: VLAN20-WEB
+   Outgoing: VLAN30-DB
+   Source: WEB01
+   Destination: DB01
+   Service: MYSQL / TCP 3306
+   Action: ACCEPT
+   NAT: Disabled
+   Logging: Enabled
+
+5. WEB_to_DB_DENY_ALL
+   Incoming: VLAN20-WEB
+   Outgoing: VLAN30-DB
+   Source: WEB01
+   Destination: DB01
+   Service: ALL
+   Action: DENY
+   Logging: Enabled
+
+IPS
+---
+Sensor: P1_SQLI_PROTECTION
+Custom signature: P1.SQL.Injection.Test
+Lab match pattern: OR 1=1 in HTTP URI
+Severity: High
+Configured action: Quarantine
+Quarantine duration: 5 minutes
+Packet logging: Enabled
+
+Observed event:
+  Source: 10.25.13.10
+  Destination: 10.25.13.130
+  Action: dropped
+
+SSL/SSH INSPECTION
+------------------
+Profile: custom-deep-inspection
+Mode: Full SSL Inspection
+CA: Fortinet_CA_SSL
+HTTPS port: 443
+
+Limitation:
+The Evaluation VM allowed configuration of the profile but did not allow a
+complete functional demonstration of HTTPS DPI in this lab.
+
+FILE FILTER
+-----------
+Profile: P1_BLOCK_EXE
+Protocol: HTTP
+Direction: Both
+File Type: exe
+Action: Block
+
+TRAFFIC SHAPING
+---------------
+Per-IP Shaper: P1_WEB_RATE_LIMIT
+Maximum bandwidth: 2048 Kbps per IP
+Target traffic: USERS -> WEB01 HTTPS
+
+DOS POLICY
+----------
+Name: P1_WEB_DOS_PROTECTION
+Incoming: VLAN10-USERS
+Source: VLAN10-USERS address
+Destination: WEB01
+Service: HTTPS
+
+tcp_syn_flood:
+  Logging: Enabled
+  Action: Block
+  Threshold: 100
