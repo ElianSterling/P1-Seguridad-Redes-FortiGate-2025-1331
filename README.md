@@ -4,7 +4,7 @@
 
 ## 🎥 Video demostrativo
 
-> El enlace del video demostrativo se agregará aquí antes de la entrega final.
+**Enlace:** https://youtu.be/EkkunkUPOk0
 
 ## Descripción
 
